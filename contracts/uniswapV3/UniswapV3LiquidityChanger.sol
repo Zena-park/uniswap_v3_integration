@@ -12,7 +12,15 @@ import "../libraries/SafeMath512.sol";
 
 import "hardhat/console.sol";
 
+interface IERC20 {
+
+    function decimals() external  view returns (uint256);
+}
+
 interface IIUniswapV3Pool {
+
+    function token0() external view returns (address);
+    function token1() external view returns (address);
 
     function slot0()
         external
@@ -90,9 +98,42 @@ contract UniswapV3LiquidityChanger {
         console.log('amount1 %s ', amount1);
     }
 
-    function getPriceX96FromSqrtPriceX96(uint160 sqrtPriceX96) public view returns(uint256 priceX96) {
-        return FullMath.mulDiv(sqrtPriceX96, sqrtPriceX96, FixedPoint96.Q96);
+    function getDecimals(address token0, address token1) public view returns(uint256 token0Decimals, uint256 token1Decimals) {
+        return (IERC20(token0).decimals(), IERC20(token1).decimals());
     }
+
+    function getPriceToken0(address poolAddress) public view returns (uint256 priceX96) {
+
+        (, int24 tick, , , , ,) = IIUniswapV3Pool(poolAddress).slot0();
+        (uint256 token0Decimals, ) = getDecimals(
+            IIUniswapV3Pool(poolAddress).token0(),
+            IIUniswapV3Pool(poolAddress).token1()
+            );
+
+        priceX96 = OracleLibrary.getQuoteAtTick(
+             tick,
+             uint128(10**token0Decimals),
+             IIUniswapV3Pool(poolAddress).token0(),
+             IIUniswapV3Pool(poolAddress).token1()
+             );
+    }
+
+    function getPriceToken1(address poolAddress) public view returns(uint256 priceX96) {
+
+        (, int24 tick, , , , ,) = IIUniswapV3Pool(poolAddress).slot0();
+        (, uint256 token1Decimals) = getDecimals(
+            IIUniswapV3Pool(poolAddress).token0(),
+            IIUniswapV3Pool(poolAddress).token1()
+            );
+
+        priceX96 = OracleLibrary.getQuoteAtTick(
+             tick,
+             uint128(10**token1Decimals),
+             IIUniswapV3Pool(poolAddress).token1(),
+             IIUniswapV3Pool(poolAddress).token0()
+             );
+    }
+
 
     function getSqrtTwapX96(address poolAddress, uint32 twapInterval) public view returns (uint160 sqrtPriceX96) {
         if (twapInterval == 0) {
@@ -111,6 +152,12 @@ contract UniswapV3LiquidityChanger {
             );
         }
     }
+
+    /*
+    function getPriceX96FromSqrtPriceX96(uint160 sqrtPriceX96) public view returns(uint256 priceX96) {
+        return FullMath.mulDiv(sqrtPriceX96, sqrtPriceX96, FixedPoint96.Q96);
+    }
+
 
     function getTotalAmountBasedToken0(address npm, address poolAddress, uint256 tokenId) public view returns (uint256 totalAmount0) {
 
@@ -210,5 +257,6 @@ contract UniswapV3LiquidityChanger {
 
         amount1 = uint256(token1CollectableAmount) + quoteAmount;
     }
+    */
 
 }

@@ -15,7 +15,7 @@ library FullMath {
         uint256 a,
         uint256 b,
         uint256 denominator
-    ) internal view returns (uint256 result) {
+    ) internal pure returns (uint256 result) {
         // Handle division by zero
         require(denominator > 0);
 

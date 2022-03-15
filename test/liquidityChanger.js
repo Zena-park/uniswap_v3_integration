@@ -49,6 +49,9 @@ TOS/WTON (0.3 %) 0x516e1af7303a94f81e91e4ac29e20f4319d4ecaf
  */
 let poolAddress = "0x516e1af7303a94f81e91e4ac29e20f4319d4ecaf";
 let tokenId = ethers.BigNumber.from("7534");
+// let poolAddress = "0x831a1f01ce17b6123a7d1ea65c26783539747d6d";
+// let tokenId = ethers.BigNumber.from("13076");
+
 
 
 describe("LiquidityChanger", function () {
@@ -117,15 +120,15 @@ describe("LiquidityChanger", function () {
 
     it("univ3prices", async function () {
         let positions = await nonfungiblePositionManager.positions(tokenId);
-        console.log('positions.liquidity.toString()',positions.liquidity.toString());
+        //console.log('positions.liquidity.toString()',positions.liquidity.toString());
 
         let slot0 = await uniswapV3Pool.slot0();
 
-        console.log('slot0.sqrtPriceX96.toString()',slot0.sqrtPriceX96.toString());
+        //console.log('slot0.sqrtPriceX96.toString()',slot0.sqrtPriceX96.toString());
 
         let tickSpacing = TICK_SPACINGS[FeeAmount.MEDIUM];
 
-        console.log('tickSpacing',tickSpacing);
+        //console.log('tickSpacing',tickSpacing);
 
         let tokenDecimals = [27, 18];
         let amount = univ3prices.getAmountsForCurrentLiquidity(
@@ -135,7 +138,7 @@ describe("LiquidityChanger", function () {
             tickSpacing,
             optOpts = {},
         )
-         console.log('amount',amount);
+        // console.log('amount',amount);
                 //console.log('univ3prices',univ3prices.getAmountsForCurrentLiquidity();)
         //const price = univ3prices(tokenDecimals, slot0.sqrtPriceX96.toString()).toAuto();
         const price = univ3prices(tokenDecimals, slot0.sqrtPriceX96.toString()).toSignificant({
@@ -143,14 +146,9 @@ describe("LiquidityChanger", function () {
             decimalPlaces: 6,
         });
         console.log(price);
-        // let price = univ3prices.sqrtPrice(tokenDecimals, slot0.sqrtPriceX96.toString()).toAuto();
-        // console.log('price',price);
-        // console.log('univ3prices',univ3prices);
+
         let sqrtRatioAX96 = univ3prices.tickMath.getSqrtRatioAtTick(positions.tickLower);
         let sqrtRatioBX96 = univ3prices.tickMath.getSqrtRatioAtTick(positions.tickUpper);
-
-        // console.log('sqrtRatioAX96',sqrtRatioAX96.toString());
-        // console.log('sqrtRatioBX96',sqrtRatioBX96.toString());
 
         const reserves = univ3prices.getAmountsForLiquidityRange(
                 slot0.sqrtPriceX96.toString(),
@@ -159,9 +157,7 @@ describe("LiquidityChanger", function () {
                 positions.liquidity.toString(),
             );
         console.log('reserves',reserves[0].toString(),reserves[1].toString());
-       // univ3prices.getAmount0ForLiquidity();
-        //https://xn--2-umb.com/21/muldiv/index.html
-        //https://medium.com/wicketh/mathemagic-full-multiply-27650fec525d
+
     });
 
     it("getAmount0", async function () {
@@ -174,5 +170,17 @@ describe("LiquidityChanger", function () {
 
     });
 
+    it("getPriceToken0ByOracle", async function () {
 
+        let price = await uniswapV3LiquidityChanger.getPriceToken0(poolAddress);
+        console.log('price based token0',price);
+
+    });
+
+    it("getPriceToken1ByOracle", async function () {
+
+        let price = await uniswapV3LiquidityChanger.getPriceToken1(poolAddress);
+        console.log('price based token1',price);
+
+    });
 });
