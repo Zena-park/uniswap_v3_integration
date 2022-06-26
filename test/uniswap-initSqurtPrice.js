@@ -47,13 +47,14 @@ let UniswapV3LiquidityChangerAddress = "0xa839a0e64b27a34ed293d3d81e1f2f8b463c35
 DOC/TOS (0.3 %)  0x831a1f01ce17b6123a7d1ea65c26783539747d6d
 TOS/WTON (0.3 %) 0x516e1af7303a94f81e91e4ac29e20f4319d4ecaf
  */
-
 // let poolAddress = "0x516e1af7303a94f81e91e4ac29e20f4319d4ecaf";
 // let tokenId = ethers.BigNumber.from("7534");
+
+//DOC/TOS
 let poolAddress = "0x831a1f01ce17b6123a7d1ea65c26783539747d6d";
 let tokenId = ethers.BigNumber.from("13076");
 
-describe("LiquidityChanger", function () {
+describe("UniswapPrice", function () {
 
     let provider;
     let nonfungiblePositionManager, uniswapV3Pool, uniswapV3LiquidityChanger ;
@@ -92,22 +93,6 @@ describe("LiquidityChanger", function () {
         expect(code).to.not.eq('0x');
     });
 
-    it("set UniswapV3LiquidityChanger", async function () {
-
-        // uniswapV3LiquidityChanger = new ethers.Contract(UniswapV3LiquidityChangerAddress, UniswapV3LiquidityChanger.abi, provider);
-        let LiquidityChanger = await ethers.getContractFactory("UniswapV3LiquidityChanger");
-        let LiquidityChangerDeployed = await LiquidityChanger.deploy();
-
-        let tx = await LiquidityChangerDeployed.deployed();
-
-        uniswapV3LiquidityChanger = new ethers.Contract(LiquidityChangerDeployed.address, UniswapV3LiquidityChanger.abi, provider);
-        console.log('uniswapV3LiquidityChanger deployed at ' , uniswapV3LiquidityChanger.address);
-
-        const code = await ethers.provider.getCode(uniswapV3LiquidityChanger.address);
-        expect(code).to.not.eq('0x');
-
-
-    });
 
     it("set NonfungiblePositionManager", async function () {
 
@@ -129,7 +114,8 @@ describe("LiquidityChanger", function () {
 
         console.log('tickSpacing',tickSpacing);
 
-        let tokenDecimals = [27, 18];
+        //let tokenDecimals = [27, 18];
+        let tokenDecimals = [18, 18];
         let amount = univ3prices.getAmountsForCurrentLiquidity(
             tokenDecimals,
             positions.liquidity.toString(),
@@ -138,44 +124,25 @@ describe("LiquidityChanger", function () {
             optOpts = {},
         )
         console.log('amount',amount);
-
-        //console.log('univ3prices',univ3prices.getAmountsForCurrentLiquidity();)
+        //console.log('univ3prices',univ3prices.getAmountsForCurrentLiquidity())
         //const price = univ3prices(tokenDecimals, slot0.sqrtPriceX96.toString()).toAuto();
         const price = univ3prices(tokenDecimals, slot0.sqrtPriceX96.toString()).toSignificant({
             // reverse: true,
             decimalPlaces: 6,
         });
         console.log(price);
-        // let price = univ3prices.sqrtPrice(tokenDecimals, slot0.sqrtPriceX96.toString()).toAuto();
-        // console.log('price',price);
-        // console.log('univ3prices',univ3prices);
-        let sqrtRatioAX96 = univ3prices.tickMath.getSqrtRatioAtTick(positions.tickLower);
-        let sqrtRatioBX96 = univ3prices.tickMath.getSqrtRatioAtTick(positions.tickUpper);
 
-        // console.log('sqrtRatioAX96',sqrtRatioAX96.toString());
-        // console.log('sqrtRatioBX96',sqrtRatioBX96.toString());
+        // let sqrtRatioAX96 = univ3prices.tickMath.getSqrtRatioAtTick(positions.tickLower);
+        // let sqrtRatioBX96 = univ3prices.tickMath.getSqrtRatioAtTick(positions.tickUpper);
 
-        const reserves = univ3prices.getAmountsForLiquidityRange(
-                slot0.sqrtPriceX96.toString(),
-                sqrtRatioAX96,
-                sqrtRatioBX96,
-                positions.liquidity.toString(),
-            );
-        console.log('reserves',reserves[0].toString(),reserves[1].toString());
-       // univ3prices.getAmount0ForLiquidity();
-        //https://xn--2-umb.com/21/muldiv/index.html
-        //https://medium.com/wicketh/mathemagic-full-multiply-27650fec525d
-    });
-
-    it("getAmount0", async function () {
-
-        let positions = await nonfungiblePositionManager.positions(tokenId);
-        //console.log('positions',positions);
-
-        let amount = await uniswapV3LiquidityChanger.getAmounts(uniswapInfo.npm, poolAddress, tokenId);
-        console.log('getAmounts',amount);
+        // const reserves = univ3prices.getAmountsForLiquidityRange(
+        //         slot0.sqrtPriceX96.toString(),
+        //         sqrtRatioAX96,
+        //         sqrtRatioBX96,
+        //         positions.liquidity.toString(),
+        //     );
+        // console.log('reserves',reserves[0].toString(),reserves[1].toString());
 
     });
-
 
 });

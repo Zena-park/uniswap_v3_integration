@@ -10,6 +10,8 @@ import "../libraries/FixedPoint96.sol";
 import "../libraries/PositionKey.sol";
 import "../libraries/SafeMath512.sol";
 
+import "../interfaces/IUniswapV3Pool.sol";
+
 import "hardhat/console.sol";
 
 interface IIUniswapV3Pool {
@@ -211,4 +213,27 @@ contract UniswapV3LiquidityChanger {
         amount1 = uint256(token1CollectableAmount) + quoteAmount;
     }
 
+    function estimateAmountOut(
+        address factoryAddress,
+        address tokenIn,
+        address tokenOut,
+        uint24 fee,
+        uint128 amountIn,
+        uint32 secondsAgos
+    ) external view returns (uint256 amountOut) {
+
+        address pool = IUniswapV3Factory(factoryAddress).getPool(
+            tokenIn, tokenOut, fee
+        );
+        require(pool != address(0), "pool doesn't exist") ;
+
+        address token0 = IUniswapV3Pool(pool).token0();
+        address token1 = IUniswapV3Pool(pool).token1();
+
+        require(token0 == tokenIn || token0 == tokenOut, "there is no matching token0");
+        require(token1 == tokenIn || token1 == tokenOut, "there is no matching token1");
+
+        int24 tick = OracleLibrary.consult(pool, secondsAgo)
+        amountOut = OracleLibrary.getQuoteAtTick(tick, amountIn, tokenIn, tokenOut);
+    }
 }
