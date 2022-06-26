@@ -5,6 +5,16 @@ import '../libraries/FullMath.sol';
 import '../libraries/TickMath.sol';
 
 
+interface IIIUniswapV3Pool {
+
+    function observe(uint32[] calldata secondsAgos)
+        external
+        view
+        returns (int56[] memory tickCumulatives, uint160[] memory secondsPerLiquidityCumulativeX128s);
+
+
+}
+
 /// @title Oracle library
 /// @notice Provides functions to integrate with V3 pool oracle
 library OracleLibrary {
@@ -20,13 +30,13 @@ library OracleLibrary {
         secondAgos[0] = period;
         secondAgos[1] = 0;
 
-        (int56[] memory tickCumulatives, ) = IUniswapV3Pool(pool).observe(secondAgos);
+        (int56[] memory tickCumulatives, ) = IIIUniswapV3Pool(pool).observe(secondAgos);
         int56 tickCumulativesDelta = tickCumulatives[1] - tickCumulatives[0];
 
-        timeWeightedAverageTick = int24(tickCumulativesDelta / period);
+        timeWeightedAverageTick = int24(tickCumulativesDelta / int56( int32(period) ));
 
         // Always round to negative infinity
-        if (tickCumulativesDelta < 0 && (tickCumulativesDelta % period != 0)) timeWeightedAverageTick--;
+        if (tickCumulativesDelta < 0 && (tickCumulativesDelta % int56( int32(period) ) != 0)) timeWeightedAverageTick--;
     }
 
     /// @notice Given a tick and a token amount, calculates the amount of token received in exchange

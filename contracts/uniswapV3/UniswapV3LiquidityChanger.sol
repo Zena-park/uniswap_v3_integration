@@ -10,11 +10,12 @@ import "../libraries/FixedPoint96.sol";
 import "../libraries/PositionKey.sol";
 import "../libraries/SafeMath512.sol";
 
-import "../interfaces/IUniswapV3Pool.sol";
-
 import "hardhat/console.sol";
 
 interface IIUniswapV3Pool {
+
+    function token0() external view returns(address);
+    function token1() external view returns(address);
 
     function slot0()
         external
@@ -67,6 +68,15 @@ interface IINonfungiblePositionManager {
             uint128 tokensOwed0,
             uint128 tokensOwed1
         );
+}
+
+interface IIUniswapV3Factory {
+
+     function getPool(
+        address tokenA,
+        address tokenB,
+        uint24 fee
+    ) external view returns (address pool);
 }
 
 contract UniswapV3LiquidityChanger {
@@ -222,18 +232,18 @@ contract UniswapV3LiquidityChanger {
         uint32 secondsAgos
     ) external view returns (uint256 amountOut) {
 
-        address pool = IUniswapV3Factory(factoryAddress).getPool(
+        address pool = IIUniswapV3Factory(factoryAddress).getPool(
             tokenIn, tokenOut, fee
         );
         require(pool != address(0), "pool doesn't exist") ;
 
-        address token0 = IUniswapV3Pool(pool).token0();
-        address token1 = IUniswapV3Pool(pool).token1();
+        address token0 = IIUniswapV3Pool(pool).token0();
+        address token1 = IIUniswapV3Pool(pool).token1();
 
         require(token0 == tokenIn || token0 == tokenOut, "there is no matching token0");
         require(token1 == tokenIn || token1 == tokenOut, "there is no matching token1");
 
-        int24 tick = OracleLibrary.consult(pool, secondsAgo)
+        int24 tick = OracleLibrary.consult(pool, secondsAgos);
         amountOut = OracleLibrary.getQuoteAtTick(tick, amountIn, tokenIn, tokenOut);
     }
 }
